@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Payment</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>💳 Payment</h1>
+        <div id="userInfo" class="user-info"></div>
+      </header>
+
+      <main class="main-content">
+        <div class="payment-container">
+          <div class="payment-summary-card">
+            <h2>Booking Summary</h2>
+            <div id="paymentSummary"></div>
+          </div>
+
+          <div class="payment-method-card">
+            <h2>Select Payment Method</h2>
+            <div class="payment-methods">
+              <div class="payment-option" onclick="selectPaymentMethod('card')">
+                <input type="radio" name="payment" id="card" checked />
+                <label for="card">
+                  <div class="payment-icon">💳</div>
+                  <span>Credit/Debit Card</span>
+                </label>
+              </div>
+              <div class="payment-option" onclick="selectPaymentMethod('upi')">
+                <input type="radio" name="payment" id="upi" />
+                <label for="upi">
+                  <div class="payment-icon">📱</div>
+                  <span>UPI</span>
+                </label>
+              </div>
+              <div
+                class="payment-option"
+                onclick="selectPaymentMethod('netbanking')"
+              >
+                <input type="radio" name="payment" id="netbanking" />
+                <label for="netbanking">
+                  <div class="payment-icon">🏦</div>
+                  <span>Net Banking</span>
+                </label>
+              </div>
+              <div
+                class="payment-option"
+                onclick="selectPaymentMethod('wallet')"
+              >
+                <input type="radio" name="payment" id="wallet" />
+                <label for="wallet">
+                  <div class="payment-icon">👛</div>
+                  <span>Wallet</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card Payment Form -->
+          <div id="cardForm" class="payment-form-card">
+            <h3>Enter Card Details</h3>
+            <form id="cardPaymentForm">
+              <div class="form-group">
+                <label>Card Number</label>
+                <input
+                  type="text"
+                  id="cardNumber"
+                  placeholder="1234 5678 9012 3456"
+                  maxlength="19"
+                  required
+                />
+              </div>
+              <div class="form-group">
+                <label>Cardholder Name</label>
+                <input
+                  type="text"
+                  id="cardName"
+                  placeholder="John Doe"
+                  required
+                />
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Expiry Date</label>
+                  <input
+                    type="text"
+                    id="expiryDate"
+                    placeholder="MM/YY"
+                    maxlength="5"
+                    required
+                  />
+                </div>
+                <div class="form-group">
+                  <label>CVV</label>
+                  <input
+                    type="password"
+                    id="cvv"
+                    placeholder="123"
+                    maxlength="3"
+                    required
+                  />
+                </div>
+              </div>
+            </form>
+          </div>
+
+          <!-- UPI Payment Form -->
+          <div id="upiForm" class="payment-form-card hidden">
+            <h3>Enter UPI Details</h3>
+            <form id="upiPaymentForm">
+              <div class="form-group">
+                <label>UPI ID</label>
+                <input
+                  type="text"
+                  id="upiId"
+                  placeholder="yourname@upi"
+                  required
+                />
+              </div>
+              <div class="qr-section">
+                <p>Or scan QR code</p>
+                <div class="qr-code">📱 QR Code</div>
+              </div>
+            </form>
+          </div>
+
+          <!-- Net Banking Form -->
+          <div id="netbankingForm" class="payment-form-card hidden">
+            <h3>Select Your Bank</h3>
+            <form id="netbankingPaymentForm">
+              <div class="form-group">
+                <label>Select Bank</label>
+                <select id="bankName" required>
+                  <option value="">Choose Bank</option>
+                  <option value="SBI">State Bank of India</option>
+                  <option value="HDFC">HDFC Bank</option>
+                  <option value="ICICI">ICICI Bank</option>
+                  <option value="Axis">Axis Bank</option>
+                  <option value="PNB">Punjab National Bank</option>
+                </select>
+              </div>
+            </form>
+          </div>
+
+          <!-- Wallet Form -->
+          <div id="walletForm" class="payment-form-card hidden">
+            <h3>Select Wallet</h3>
+            <form id="walletPaymentForm">
+              <div class="form-group">
+                <label>Choose Wallet</label>
+                <select id="walletName" required>
+                  <option value="">Choose Wallet</option>
+                  <option value="Paytm">Paytm</option>
+                  <option value="PhonePe">PhonePe</option>
+                  <option value="GooglePay">Google Pay</option>
+                  <option value="AmazonPay">Amazon Pay</option>
+                </select>
+              </div>
+            </form>
+          </div>
+
+          <div class="payment-actions">
+            <button onclick="processPayment()" class="btn-primary">
+              Pay Now
+            </button>
+            <button onclick="goBackToBooking()" class="btn-secondary">
+              Back
+            </button>
+          </div>
+
+          <div id="paymentStatus" class="payment-status hidden"></div>
+        </div>
+      </main>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script src="script.js"></script>
+    <script>
+      window.onload = function () {
+        if (window.fbInitialized && typeof auth !== "undefined") {
+          auth.onAuthStateChanged(function (user) {
+            if (user) {
+              // User is logged in, show payment details
+              loadPaymentDetails();
+            } else {
+              alert("Please log in first");
+              window.location.href = "index.html";
+            }
+          });
+        }
+      };
+    </script>
+  </body>
+</html>

@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>My Profile & Bookings</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>👤 My Profile</h1>
+        <div id="userInfo" class="user-info"></div>
+      </header>
+      <main class="main-content">
+        <div class="profile-container">
+          <h2>My Bookings</h2>
+          <div id="bookingsList"></div>
+        </div>
+      </main>
+    </div>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script src="script.js"></script>
+    <script>
+      window.onload = function () {
+        if (window.fbInitialized && typeof auth !== "undefined") {
+          auth.onAuthStateChanged(function (user) {
+            if (user) {
+              document.getElementById(
+                "userInfo"
+              ).textContent = `Logged in as: ${user.email}`;
+              loadUserBookings(user.uid);
+            } else {
+              alert("Please log in first");
+              window.location.href = "index.html";
+            }
+          });
+        }
+      };
+      function loadUserBookings(uid) {
+        const bookingsList = document.getElementById("bookingsList");
+        bookingsList.innerHTML = "Loading...";
+        database.ref(`bookings/${uid}`).once("value", function (snapshot) {
+          const bookings = snapshot.val();
+          if (!bookings) {
+            bookingsList.innerHTML = "No bookings found.";
+            return;
+          }
+          let html = "";
+          Object.values(bookings).forEach((booking, idx) => {
+            html += `<div class='booking-card'>
+              <h3>Booking #${idx + 1}</h3>
+              <p><strong>Bus:</strong> ${booking.bus.name}</p>
+              <p><strong>Route:</strong> ${booking.bus.from} → ${
+              booking.bus.to
+            }</p>
+              <p><strong>Date:</strong> ${booking.bus.date}</p>
+              <p><strong>Seats:</strong> ${booking.seats.join(", ")}</p>
+              <p><strong>Total:</strong> $${booking.totalAmount}</p>
+              <p><strong>Contact:</strong> ${booking.contactNumber}</p>
+            </div>`;
+          });
+          bookingsList.innerHTML = html;
+        });
+      }
+    </script>
+  </body>
+</html>

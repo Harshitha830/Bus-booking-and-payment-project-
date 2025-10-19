@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Book Your Seat</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>🚌 Seat Selection</h1>
+        <div id="userInfo" class="user-info"></div>
+      </header>
+
+      <main class="main-content">
+        <div class="booking-container">
+          <div
+            id="noBusSelected"
+            style="
+              display: none;
+              color: #c00;
+              font-weight: bold;
+              text-align: center;
+              margin: 30px 0;
+            "
+          >
+            No bus selected. Please go back and select a bus.
+          </div>
+          <div id="bookingSteps" style="display: none">
+            <!-- Step 1: Bus Details -->
+            <div class="bus-details-card">
+              <h2>Bus Details</h2>
+              <div id="busDetails"></div>
+            </div>
+            <!-- Step 2: Seat Selection -->
+            <div class="seat-selection-card">
+              <h2>Select Your Seats</h2>
+              <div class="seat-legend">
+                <div class="legend-item">
+                  <div class="seat available"></div>
+                  <span>Available</span>
+                </div>
+                <div class="legend-item">
+                  <div class="seat selected"></div>
+                  <span>Selected</span>
+                </div>
+                <div class="legend-item">
+                  <div class="seat booked"></div>
+                  <span>Booked</span>
+                </div>
+              </div>
+              <div class="bus-layout">
+                <div class="driver-section">
+                  <div class="driver">🚗 Driver</div>
+                </div>
+                <div id="seatMap" class="seat-map"></div>
+              </div>
+            </div>
+            <!-- Step 3: Passenger Details -->
+            <div class="passenger-details-card">
+              <h2>Passenger Details</h2>
+              <form id="passengerForm">
+                <div id="passengerInputs"></div>
+                <div class="form-group">
+                  <label>Contact Number</label>
+                  <input type="tel" id="contactNumber" required />
+                </div>
+                <div class="form-group">
+                  <label>Emergency Contact</label>
+                  <input type="tel" id="emergencyContact" required />
+                </div>
+              </form>
+            </div>
+            <!-- Step 4: Booking Summary -->
+            <div class="booking-summary-card">
+              <h2>Booking Summary</h2>
+              <div id="bookingSummary"></div>
+              <div class="total-section">
+                <h3>Total Amount: $<span id="totalAmount">0</span></h3>
+              </div>
+              <button
+                onclick="proceedToPayment()"
+                class="btn-primary"
+                id="proceedBtn"
+                disabled
+              >
+                Proceed to Payment
+              </button>
+              <button onclick="goBack()" class="btn-secondary">
+                Back to Search
+              </button>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script src="script.js"></script>
+    <script>
+      // Improved booking page logic
+      window.onload = function () {
+        if (window.fbInitialized && typeof auth !== "undefined") {
+          auth.onAuthStateChanged(function (user) {
+            if (user) {
+              // Check if bus is selected
+              const busData = sessionStorage.getItem("selectedBus");
+              console.log("[Booking Page] Bus data from session:", busData);
+              if (!busData) {
+                document.getElementById("noBusSelected").style.display =
+                  "block";
+                document.getElementById("bookingSteps").style.display = "none";
+                document.getElementById("noBusSelected").innerHTML =
+                  "No bus selected or session expired.<br>Please go back to the main page, log in, and select a bus.";
+              } else {
+                document.getElementById("noBusSelected").style.display = "none";
+                document.getElementById("bookingSteps").style.display = "block";
+                try {
+                  loadBusDetails();
+                  generateSeats();
+                } catch (err) {
+                  console.error(
+                    "[Booking Page] Error generating seat map:",
+                    err
+                  );
+                  document.getElementById("seatMap").innerHTML =
+                    '<div style="color:#c00; font-weight:bold; text-align:center;">Could not load seat selection. Please try again.</div>';
+                }
+              }
+            } else {
+              alert("Please log in first");
+              window.location.href = "index.html";
+            }
+          });
+        }
+      };
+    </script>
+  </body>
+</html>
